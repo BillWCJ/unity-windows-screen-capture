@@ -43,6 +43,8 @@
 #include <d2d1_3.h>
 #include <wincodec.h>
 
+#include "IUnityGraphics.h"
+
 #include "framework.h"
 
 #endif //PCH_H
