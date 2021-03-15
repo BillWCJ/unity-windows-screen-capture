@@ -29,6 +29,10 @@
 //    winrt::init_apartment(winrt::apartment_type::multi_threaded);
 //}
 
+// debug event
+static FuncPtr s_debug;
+
+UNITY_INTERFACE_EXPORT void SetDebugFunction(FuncPtr debug) { s_debug = debug; }
 
 // --------------------------------------------------------------------------
 // UnitySetInterfaces
@@ -88,7 +92,7 @@ static void UNITY_INTERFACE_API OnGraphicsDeviceEvent(UnityGfxDeviceEventType ev
 	{
 		assert(s_CurrentAPI == NULL);
 		s_DeviceType = s_Graphics->GetRenderer();
-		s_CurrentAPI = CreatePluginManager(s_DeviceType);
+		s_CurrentAPI = CreatePluginManager(s_DeviceType, s_debug, s_UnityInterfaces);
 	}
 
 	// Let the implementation process the device related events

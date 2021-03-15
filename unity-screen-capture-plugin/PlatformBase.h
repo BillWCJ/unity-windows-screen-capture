@@ -4,6 +4,8 @@
 
 #include <stddef.h>
 
+typedef void (*FuncPtr)(const char*);
+
 
 // Which platform we are on?
 // UNITY_WIN - Windows (regular win32)

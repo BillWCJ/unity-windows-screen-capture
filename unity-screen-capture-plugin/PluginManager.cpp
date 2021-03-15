@@ -3,13 +3,13 @@
 #include "PlatformBase.h"
 
 
-PluginManager* CreatePluginManager(UnityGfxRenderer apiType)
+PluginManager* CreatePluginManager(UnityGfxRenderer apiType, FuncPtr debug, IUnityInterfaces* unityInterfaces)
 {
 #	if SUPPORT_D3D11
 	if (apiType == kUnityGfxRendererD3D11)
 	{
-		extern PluginManager* CreatePluginManager_D3D11();
-		return CreatePluginManager_D3D11();
+		extern PluginManager* CreatePluginManager_D3D11(FuncPtr debug, IUnityInterfaces * unityInterfaces);
+		return CreatePluginManager_D3D11(debug, unityInterfaces);
 	}
 #	endif // if SUPPORT_D3D11
 

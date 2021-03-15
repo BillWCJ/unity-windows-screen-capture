@@ -14,7 +14,7 @@
 class PluginManager_D3D11 : public PluginManager
 {
 public:
-	PluginManager_D3D11();
+	PluginManager_D3D11(FuncPtr debug, IUnityInterfaces* unityInterfaces);
 	virtual ~PluginManager_D3D11() { }
 
 	virtual void ProcessDeviceEvent(UnityGfxDeviceEventType type, IUnityInterfaces* interfaces);
@@ -27,9 +27,9 @@ private:
 	ID3D11Device* m_Device;
 };
 
-PluginManager* CreatePluginManager_D3D11()
+PluginManager* CreatePluginManager_D3D11(FuncPtr debug, IUnityInterfaces* unityInterfaces)
 {
-	return new PluginManager_D3D11();
+	return new PluginManager_D3D11(debug, unityInterfaces);
 }
 
 // Simple compiled shader bytecode.
@@ -51,8 +51,7 @@ float4 PS(float4 color : COLOR) : SV_TARGET
 }
 #endif // #if 0
 
-PluginManager_D3D11::PluginManager_D3D11()
-	: m_Device(NULL)
+PluginManager_D3D11::PluginManager_D3D11(FuncPtr debug, IUnityInterfaces* unityInterfaces)
 {
 }
 

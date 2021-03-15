@@ -1,8 +1,7 @@
 #pragma once
 
-
-
 #include <stddef.h>
+#include "PlatformBase.h"
 
 struct IUnityInterfaces;
 
@@ -18,4 +17,4 @@ public:
 
 
 // Create a graphics API implementation instance for the given API type.
-PluginManager* CreatePluginManager(UnityGfxRenderer apiType);
+PluginManager* CreatePluginManager(UnityGfxRenderer apiType, FuncPtr debug, IUnityInterfaces* unityInterfaces);
