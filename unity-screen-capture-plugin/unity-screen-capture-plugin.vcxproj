@@ -100,6 +100,20 @@
       <EnableUAC>false</EnableUAC>
       <AdditionalDependencies>Windowscodecs.lib;windowsapp.lib;dwmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>SETLOCAL
+
+if "$(PlatformShortName)" == "x86" (
+  set TARGET_PLUGIN_PATH=$(SolutionDir)..\..\..\ScreenCaptureDemo\Assets\Plugins\x86
+) else (
+  set TARGET_PLUGIN_PATH=$(SolutionDir)..\..\..\ScreenCaptureDemo\Assets\Plugins\x86_64
+)
+echo Target Plugin Path is %TARGET_PLUGIN_PATH%
+copy /Y "$(TargetPath)" "%TARGET_PLUGIN_PATH%\$(TargetFileName)"
+
+ENDLOCAL
+</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -122,6 +136,20 @@
       <EnableUAC>false</EnableUAC>
       <AdditionalDependencies>Windowscodecs.lib;windowsapp.lib;dwmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>SETLOCAL
+
+if "$(PlatformShortName)" == "x86" (
+  set TARGET_PLUGIN_PATH=$(SolutionDir)..\..\..\ScreenCaptureDemo\Assets\Plugins\x86
+) else (
+  set TARGET_PLUGIN_PATH=$(SolutionDir)..\..\..\ScreenCaptureDemo\Assets\Plugins\x86_64
+)
+echo Target Plugin Path is %TARGET_PLUGIN_PATH%
+copy /Y "$(TargetPath)" "%TARGET_PLUGIN_PATH%\$(TargetFileName)"
+
+ENDLOCAL
+</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -140,6 +168,20 @@
       <EnableUAC>false</EnableUAC>
       <AdditionalDependencies>Windowscodecs.lib;windowsapp.lib;dwmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>SETLOCAL
+
+if "$(PlatformShortName)" == "x86" (
+  set TARGET_PLUGIN_PATH=$(SolutionDir)..\ScreenCaptureDemo\Assets\Plugins\x86
+) else (
+  set TARGET_PLUGIN_PATH=$(SolutionDir)..\ScreenCaptureDemo\Assets\Plugins\x86_64
+)
+echo Target Plugin Path is %TARGET_PLUGIN_PATH%
+copy /Y "$(TargetPath)" "%TARGET_PLUGIN_PATH%\$(TargetFileName)"
+
+ENDLOCAL
+</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -162,6 +204,20 @@
       <EnableUAC>false</EnableUAC>
       <AdditionalDependencies>Windowscodecs.lib;windowsapp.lib;dwmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>SETLOCAL
+
+if "$(PlatformShortName)" == "x86" (
+  set TARGET_PLUGIN_PATH=$(SolutionDir)..\..\..\ScreenCaptureDemo\Assets\Plugins\x86
+) else (
+  set TARGET_PLUGIN_PATH=$(SolutionDir)..\..\..\ScreenCaptureDemo\Assets\Plugins\x86_64
+)
+echo Target Plugin Path is %TARGET_PLUGIN_PATH%
+copy /Y "$(TargetPath)" "%TARGET_PLUGIN_PATH%\$(TargetFileName)"
+
+ENDLOCAL
+</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="framework.h" />
