@@ -21,31 +21,5 @@ PluginManager* CreatePluginManager(UnityGfxRenderer apiType, FuncPtr debug, IUni
 	}
 #	endif // if SUPPORT_D3D12
 
-
-#	if SUPPORT_OPENGL_UNIFIED
-	if (apiType == kUnityGfxRendererOpenGLCore || apiType == kUnityGfxRendererOpenGLES20 || apiType == kUnityGfxRendererOpenGLES30)
-	{
-		extern PluginManager* CreatePluginManager_OpenGLCoreES(UnityGfxRenderer apiType);
-		return CreatePluginManager_OpenGLCoreES(apiType);
-	}
-#	endif // if SUPPORT_OPENGL_UNIFIED
-
-#	if SUPPORT_METAL
-	if (apiType == kUnityGfxRendererMetal)
-	{
-		extern PluginManager* CreatePluginManager_Metal();
-		return CreatePluginManager_Metal();
-	}
-#	endif // if SUPPORT_METAL
-
-#	if SUPPORT_VULKAN
-	if (apiType == kUnityGfxRendererVulkan)
-	{
-		extern PluginManager* CreatePluginManager_Vulkan();
-		return CreatePluginManager_Vulkan();
-	}
-#	endif // if SUPPORT_VULKAN
-
-	// Unknown or unsupported graphics API
 	return NULL;
 }

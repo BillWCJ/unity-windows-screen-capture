@@ -32,24 +32,6 @@ PluginManager* CreatePluginManager_D3D11(FuncPtr debug, IUnityInterfaces* unityI
 	return new PluginManager_D3D11(debug, unityInterfaces);
 }
 
-// Simple compiled shader bytecode.
-//
-// Shader source that was used:
-#if 0
-cbuffer MyCB : register(b0)
-{
-	float4x4 worldMatrix;
-}
-void VS(float3 pos : POSITION, float4 color : COLOR, out float4 ocolor : COLOR, out float4 opos : SV_Position)
-{
-	opos = mul(worldMatrix, float4(pos, 1));
-	ocolor = color;
-}
-float4 PS(float4 color : COLOR) : SV_TARGET
-{
-	return color;
-}
-#endif // #if 0
 
 PluginManager_D3D11::PluginManager_D3D11(FuncPtr debug, IUnityInterfaces* unityInterfaces)
 {
