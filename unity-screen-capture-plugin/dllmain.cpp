@@ -2,6 +2,7 @@
 
 // Example low level rendering Unity plugin
 #include <assert.h>
+#include <iostream>
 #include <math.h>
 #include <vector>
 
@@ -10,11 +11,11 @@
 #include "IUnityGraphicsD3D11.h"
 #include "PluginManager.h"
 #include "PlatformBase.h"
-
+/*
 // debug event
 static FuncPtr s_debug;
 
-UNITY_INTERFACE_EXPORT void SetDebugFunction(FuncPtr debug) { s_debug = debug; }
+extern "C" void UNITY_INTERFACE_EXPORT SetDebugFunction(FuncPtr debug) { s_debug = debug; }
 
 // --------------------------------------------------------------------------
 // UnitySetInterfaces
@@ -26,6 +27,7 @@ static IUnityGraphics* s_Graphics = NULL;
 
 extern "C" void	UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UnityPluginLoad(IUnityInterfaces * unityInterfaces)
 {
+	std::cout << "Starting Plugin" << std::endl;
 	s_UnityInterfaces = unityInterfaces;
 	s_Graphics = s_UnityInterfaces->Get<IUnityGraphics>();
 	s_Graphics->RegisterDeviceEventCallback(OnGraphicsDeviceEvent);
@@ -93,3 +95,4 @@ extern "C" UnityRenderingEvent UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API GetRen
 {
 	return OnRenderEvent;
 }
+*/
