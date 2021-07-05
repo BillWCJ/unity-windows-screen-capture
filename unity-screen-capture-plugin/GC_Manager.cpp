@@ -160,6 +160,8 @@ extern "C" UNITY_INTERFACE_EXPORT struct DX11ScreenGrabber* grabber_create(ID3D1
 	grabber->frame_pool = winrt::Direct3D11CaptureFramePool::Create(GetDirectD3DDevice(grabber->d3dDevice), winrt::DirectXPixelFormat::B8G8R8A8UIntNormalized, 2, item.Size());
 	grabber->session = grabber->frame_pool.CreateCaptureSession(item);
 	grabber->last_size = item.Size();
+
+
 	
 	/*
 	res = D3D11CreateDevice(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, D3D11_CREATE_DEVICE_BGRA_SUPPORT, NULL, 0, D3D11_SDK_VERSION, &grabber->device, NULL, &grabber->context);
@@ -175,6 +177,9 @@ extern "C" UNITY_INTERFACE_EXPORT struct DX11ScreenGrabber* grabber_create(ID3D1
 		goto err;
 	}
 
+	std::cout << "Starting capture" << std::endl;
+	grabber->session.StartCapture();
+	
 	return grabber;
 err:
 	std::cout << "Error!!!" << std::endl;
