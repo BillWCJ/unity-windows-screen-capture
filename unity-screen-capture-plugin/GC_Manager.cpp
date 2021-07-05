@@ -1,8 +1,7 @@
-// NativeLibTest.cpp : Defines the exported functions for the DLL application.
-//
-
 #include "pch.h"
-#include "NativeLibTest.h"
+
+
+#include "GC_Manager.h"
 #include "DXGI.h"
 #include "DXGI1_2.h"
 #include "D3D11.h"
@@ -10,7 +9,9 @@
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3d11.lib")
 
-NATIVELIBTEST_API int grabber_get_next_frame(struct DX11ScreenGrabber* grabber, ID3D11Resource* unused);
+
+
+extern "C" UNITY_INTERFACE_EXPORT int grabber_get_next_frame(struct DX11ScreenGrabber* grabber, ID3D11Resource * unused);
 
 struct DX11ScreenGrabber {
 	IDXGIFactory1* factory1;
@@ -72,7 +73,7 @@ int grabber_create_dest_texture(struct DX11ScreenGrabber* grabber)
 	return 0;
 }
 
-NATIVELIBTEST_API void grabber_destroy(struct DX11ScreenGrabber* grabber)
+extern "C" UNITY_INTERFACE_EXPORT void grabber_destroy(struct DX11ScreenGrabber* grabber)
 {
 	if (!grabber)
 		return;
@@ -99,7 +100,7 @@ NATIVELIBTEST_API void grabber_destroy(struct DX11ScreenGrabber* grabber)
 		grabber->dest_view->Release();
 }
 
-NATIVELIBTEST_API struct DX11ScreenGrabber* grabber_create(ID3D11Resource* tex)
+extern "C" UNITY_INTERFACE_EXPORT struct DX11ScreenGrabber* grabber_create(ID3D11Resource * tex)
 {
 	struct DX11ScreenGrabber* grabber;
 	HRESULT res;
@@ -171,7 +172,7 @@ err:
 	return NULL;
 }
 
-NATIVELIBTEST_API int grabber_get_next_frame(struct DX11ScreenGrabber* grabber, ID3D11Resource* dest)
+extern "C" UNITY_INTERFACE_EXPORT int grabber_get_next_frame(struct DX11ScreenGrabber* grabber, ID3D11Resource * dest)
 {
 	DXGI_OUTDUPL_FRAME_INFO info;
 	IDXGIResource* resource;
@@ -214,17 +215,17 @@ out:
 	return ret;
 }
 
-NATIVELIBTEST_API int grabber_get_width(struct DX11ScreenGrabber* grabber)
+extern "C" UNITY_INTERFACE_EXPORT int grabber_get_width(struct DX11ScreenGrabber* grabber)
 {
 	return grabber->width;
 }
 
-NATIVELIBTEST_API int grabber_get_height(struct DX11ScreenGrabber* grabber)
+extern "C" UNITY_INTERFACE_EXPORT int grabber_get_height(struct DX11ScreenGrabber* grabber)
 {
 	return grabber->height;
 }
 
-NATIVELIBTEST_API ID3D11ShaderResourceView* grabber_get_dest_tex(struct DX11ScreenGrabber* grabber)
+extern "C" UNITY_INTERFACE_EXPORT ID3D11ShaderResourceView * grabber_get_dest_tex(struct DX11ScreenGrabber* grabber)
 {
 	return grabber->dest_view;
 }

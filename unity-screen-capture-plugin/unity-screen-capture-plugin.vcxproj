@@ -222,23 +222,20 @@ ENDLOCAL
   <ItemGroup>
     <ClInclude Include="direct3d11.interop.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="GC_Manager.h" />
     <ClInclude Include="MonitorList.h" />
-    <ClInclude Include="NativeLibTest.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="PlatformBase.h" />
-    <ClInclude Include="PluginManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="GC_Manager.cpp" />
     <ClCompile Include="MonitorList.cpp" />
-    <ClCompile Include="NativeLibTest.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="PluginManager.cpp" />
     <ClCompile Include="PluginManager_D3D11.cpp" />
   </ItemGroup>
   <ItemGroup>

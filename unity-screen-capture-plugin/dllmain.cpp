@@ -1,16 +1,22 @@
 #include "pch.h"
 
-// Example low level rendering Unity plugin
-#include <assert.h>
-#include <iostream>
-#include <math.h>
-#include <vector>
 
-#include "IUnityGraphics.h"
-#include "d3d11.h" //make sure this appears before IUnityGraphicsD3D11
-#include "IUnityGraphicsD3D11.h"
-#include "PluginManager.h"
-#include "PlatformBase.h"
+BOOL APIENTRY DllMain(HMODULE hModule,
+	DWORD  ul_reason_for_call,
+	LPVOID lpReserved
+)
+{
+	switch (ul_reason_for_call)
+	{
+	case DLL_PROCESS_ATTACH:
+	case DLL_THREAD_ATTACH:
+	case DLL_THREAD_DETACH:
+	case DLL_PROCESS_DETACH:
+		break;
+	}
+	return TRUE;
+}
+
 /*
 // debug event
 static FuncPtr s_debug;

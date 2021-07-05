@@ -21,19 +21,13 @@
     <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PluginManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PlatformBase.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MonitorList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="direct3d11.interop.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="NativeLibTest.h">
+    <ClInclude Include="GC_Manager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -44,16 +38,13 @@
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PluginManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="PluginManager_D3D11.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MonitorList.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="NativeLibTest.cpp">
+    <ClCompile Include="GC_Manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
