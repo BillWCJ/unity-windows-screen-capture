@@ -43,9 +43,6 @@ struct DX11ScreenGrabber {
 	winrt::Windows::Graphics::Capture::GraphicsCaptureSession session{ nullptr };
 	winrt::Windows::Graphics::SizeInt32 last_size;
 	
-	int width;
-	int height;
-
 	ID3D11Texture2D* dest_tex;
 	ID3D11ShaderResourceView* dest_view;
 };
@@ -55,8 +52,10 @@ int grabber_create_dest_texture(struct DX11ScreenGrabber* grabber)
 	D3D11_TEXTURE2D_DESC desc;
 	HRESULT res;
 
-	desc.Width = grabber->width;
-	desc.Height = grabber->height;
+	std::cout << "creating dest tex for " << grabber->last_size.Width << ":" << grabber->last_size.Height << std::endl;
+	
+	desc.Width = grabber->last_size.Width;
+	desc.Height = grabber->last_size.Height;
 	desc.MipLevels = 1;
 	desc.ArraySize = 1;
 	desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
@@ -71,6 +70,7 @@ int grabber_create_dest_texture(struct DX11ScreenGrabber* grabber)
 	desc.MiscFlags = 0;
 
 
+	std::cout << "Setting sub resource data" << std::endl;
 	D3D11_SUBRESOURCE_DATA initial;
 	initial.SysMemPitch = desc.Width * 4;
 	initial.SysMemSlicePitch = desc.Width * desc.Height * 4;
@@ -165,9 +165,6 @@ extern "C" UNITY_INTERFACE_EXPORT struct DX11ScreenGrabber* grabber_create(ID3D1
 	}
 	*/
 	
-	//grabber->width = outputdesc.DesktopCoordinates.right - outputdesc.DesktopCoordinates.left;
-	//grabber->height = outputdesc.DesktopCoordinates.bottom - outputdesc.DesktopCoordinates.top;
-
 	std::cout << "Creating dest test" << std::endl;
 	if (grabber_create_dest_texture(grabber)) {
 		*ret = -8;
@@ -227,12 +224,12 @@ out:
 
 extern "C" UNITY_INTERFACE_EXPORT int grabber_get_width(struct DX11ScreenGrabber* grabber)
 {
-	return grabber->width;
+	return grabber->last_size.Width;
 }
 
 extern "C" UNITY_INTERFACE_EXPORT int grabber_get_height(struct DX11ScreenGrabber* grabber)
 {
-	return grabber->height;
+	return grabber->last_size.Height;
 }
 
 extern "C" UNITY_INTERFACE_EXPORT ID3D11ShaderResourceView * grabber_get_dest_tex(struct DX11ScreenGrabber* grabber)
