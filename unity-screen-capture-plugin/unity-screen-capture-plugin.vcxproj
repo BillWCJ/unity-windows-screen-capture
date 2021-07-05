@@ -223,6 +223,7 @@ ENDLOCAL
     <ClInclude Include="direct3d11.interop.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="GC_Manager.h" />
+    <ClInclude Include="GraphicsHelper.h" />
     <ClInclude Include="MonitorList.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>

@@ -2,27 +2,47 @@
 
 
 #include "GC_Manager.h"
-#include "DXGI.h"
-#include "DXGI1_2.h"
+
+#include <iostream>
+
 #include "D3D11.h"
+#include "GraphicsHelper.h"
+#include "MonitorList.h"
+#include <winrt/Windows.Graphics.Capture.h>
+#include <windows.graphics.capture.interop.h>
+#include <windows.graphics.capture.h>
+
 
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3d11.lib")
 
 
+namespace winrt
+{
+	using namespace Windows::Foundation;
+	using namespace Windows::System;
+	using namespace Windows::Graphics;
+	using namespace Windows::Graphics::Capture;
+	using namespace Windows::Graphics::DirectX;
+	using namespace Windows::Graphics::DirectX::Direct3D11;
+	using namespace Windows::Foundation::Numerics;
+	using namespace Windows::UI;
+	using namespace Windows::UI::Composition;
+}
+
 
 extern "C" UNITY_INTERFACE_EXPORT int grabber_get_next_frame(struct DX11ScreenGrabber* grabber, ID3D11Resource * unused);
 
 struct DX11ScreenGrabber {
-	IDXGIFactory1* factory1;
-	IDXGIAdapter1* adapter;
-	IDXGIOutput* output;
-	IDXGIOutput1* output1;
-
 	ID3D11Device* device;
+	winrt::com_ptr <ID3D11Device> d3dDevice{ nullptr };
 	ID3D11DeviceContext* context;
-	IDXGIOutputDuplication* duplication;
+	MonitorList* monitor_list;
 
+	winrt::Windows::Graphics::Capture::Direct3D11CaptureFramePool frame_pool{ nullptr };
+	winrt::Windows::Graphics::Capture::GraphicsCaptureSession session{ nullptr };
+	winrt::Windows::Graphics::SizeInt32 last_size;
+	
 	int width;
 	int height;
 
@@ -78,26 +98,32 @@ extern "C" UNITY_INTERFACE_EXPORT void grabber_destroy(struct DX11ScreenGrabber*
 	if (!grabber)
 		return;
 
-	if (grabber->factory1)
-		grabber->factory1->Release();
-	if (grabber->adapter)
-		grabber->adapter->Release();
-	if (grabber->output)
-		grabber->output->Release();
-	if (grabber->output1)
-		grabber->output1->Release();
-
 	if (grabber->device)
 		grabber->device->Release();
 	if (grabber->context)
 		grabber->context->Release();
-	if (grabber->duplication)
-		grabber->duplication->Release();
+	grabber->d3dDevice.detach();
 
 	if (grabber->dest_tex)
 		grabber->dest_tex->Release();
 	if (grabber->dest_view)
 		grabber->dest_view->Release();
+}
+
+inline auto CreateCaptureItemForWindow(HWND hwnd)
+{
+	auto interop_factory = winrt::get_activation_factory<winrt::Windows::Graphics::Capture::GraphicsCaptureItem, IGraphicsCaptureItemInterop>();
+	winrt::Windows::Graphics::Capture::GraphicsCaptureItem item = { nullptr };
+	winrt::check_hresult(interop_factory->CreateForWindow(hwnd, winrt::guid_of<ABI::Windows::Graphics::Capture::IGraphicsCaptureItem>(), winrt::put_abi(item)));
+	return item;
+}
+
+inline auto CreateCaptureItemForMonitor(HMONITOR hmon)
+{
+	auto interop_factory = winrt::get_activation_factory<winrt::Windows::Graphics::Capture::GraphicsCaptureItem, IGraphicsCaptureItemInterop>();
+	winrt::Windows::Graphics::Capture::GraphicsCaptureItem item = { nullptr };
+	winrt::check_hresult(interop_factory->CreateForMonitor(hmon, winrt::guid_of<ABI::Windows::Graphics::Capture::IGraphicsCaptureItem>(), winrt::put_abi(item)));
+	return item;
 }
 
 extern "C" UNITY_INTERFACE_EXPORT struct DX11ScreenGrabber* grabber_create(ID3D11Resource * tex)
@@ -107,36 +133,30 @@ extern "C" UNITY_INTERFACE_EXPORT struct DX11ScreenGrabber* grabber_create(ID3D1
 	int r;
 	int* ret = &r;
 
+	std::cout << "Allocating grabber" << std::endl;
 	grabber = (DX11ScreenGrabber*)malloc(sizeof(*grabber));
 	memset(grabber, 0, sizeof(*grabber));
 
-	res = CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&grabber->factory1);
-	if (res != S_OK) {
-		*ret = -1;
-		goto err;
-	}
-
-	res = grabber->factory1->EnumAdapters1(0, &grabber->adapter);
-	if (res != S_OK) {
-		*ret = -2;
-		goto err;
-	}
-
-	res = grabber->adapter->EnumOutputs(0, &grabber->output);
-	if (res != S_OK) {
-		*ret = -3;
-		goto err;
-	}
-
-	res = grabber->output->QueryInterface(__uuidof(IDXGIOutput1), (void**)&grabber->output1);
-	if (res != S_OK) {
-		*ret = -4;
-		goto err;
-	}
-
+	std::cout << "Getting device" << std::endl;
 	tex->GetDevice(&grabber->device);
 	grabber->device->GetImmediateContext(&grabber->context);
 
+	std::cout << "Allocating monitor list" << std::endl;
+	grabber->monitor_list = new MonitorList(false);
+	
+	tex->GetDevice(grabber->d3dDevice.put());
+
+	const std::vector<MonitorInfo> monitor_infos = grabber->monitor_list->GetCurrentMonitors();
+	const HMONITOR hmon = monitor_infos[0].MonitorHandle;
+
+	std::cout << "Creating Item for " << monitor_infos[0].DisplayName.c_str() << std::endl;
+	const winrt::GraphicsCaptureItem item = CreateCaptureItemForMonitor(hmon);
+
+	std::cout << "Creating frame pool" << std::endl;
+	grabber->frame_pool = winrt::Direct3D11CaptureFramePool::Create(GetDirectD3DDevice(grabber->d3dDevice), winrt::DirectXPixelFormat::B8G8R8A8UIntNormalized, 2, item.Size());
+	grabber->session = grabber->frame_pool.CreateCaptureSession(item);
+	grabber->last_size = item.Size();
+	
 	/*
 	res = D3D11CreateDevice(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, D3D11_CREATE_DEVICE_BGRA_SUPPORT, NULL, 0, D3D11_SDK_VERSION, &grabber->device, NULL, &grabber->context);
 	if (res != S_OK) {
@@ -144,23 +164,11 @@ extern "C" UNITY_INTERFACE_EXPORT struct DX11ScreenGrabber* grabber_create(ID3D1
 		goto err;
 	}
 	*/
+	
+	//grabber->width = outputdesc.DesktopCoordinates.right - outputdesc.DesktopCoordinates.left;
+	//grabber->height = outputdesc.DesktopCoordinates.bottom - outputdesc.DesktopCoordinates.top;
 
-
-	res = grabber->output1->DuplicateOutput(grabber->device, &grabber->duplication);
-	if (res != S_OK) {
-		*ret = -6;
-		goto err;
-	}
-
-	DXGI_OUTPUT_DESC outputdesc;
-	res = grabber->output->GetDesc(&outputdesc);
-	if (res != S_OK) {
-		*ret = -7;
-		goto err;
-	}
-	grabber->width = outputdesc.DesktopCoordinates.right - outputdesc.DesktopCoordinates.left;
-	grabber->height = outputdesc.DesktopCoordinates.bottom - outputdesc.DesktopCoordinates.top;
-
+	std::cout << "Creating dest test" << std::endl;
 	if (grabber_create_dest_texture(grabber)) {
 		*ret = -8;
 		goto err;
@@ -168,49 +176,51 @@ extern "C" UNITY_INTERFACE_EXPORT struct DX11ScreenGrabber* grabber_create(ID3D1
 
 	return grabber;
 err:
+	std::cout << "Error!!!" << std::endl;
 	grabber_destroy(grabber);
 	return NULL;
 }
 
 extern "C" UNITY_INTERFACE_EXPORT int grabber_get_next_frame(struct DX11ScreenGrabber* grabber, ID3D11Resource * dest)
 {
-	DXGI_OUTDUPL_FRAME_INFO info;
-	IDXGIResource* resource;
-	ID3D11Texture2D* source = NULL;
-	HRESULT res;
+	// DXGI_OUTDUPL_FRAME_INFO info;
+	// IDXGIResource* resource;
+	// ID3D11Texture2D* source = NULL;
+	// HRESULT res;
 	int ret = 0;
-
-	res = grabber->duplication->AcquireNextFrame(0, &info, &resource);
-
-	if (res != S_OK)
-		return -1;
-
-	if (!info.AccumulatedFrames) {
-		ret = 1;
-		goto out;
-	}
-
-	res = resource->QueryInterface(__uuidof(ID3D11Texture2D), (void**)&source);
-	if (res != S_OK) {
-		ret = -2;
-		goto out;
-	}
-
-	D3D11_TEXTURE2D_DESC s_desc;
-	source->GetDesc(&s_desc);
-
-	D3D11_TEXTURE2D_DESC d_desc;
-	grabber->dest_tex->GetDesc(&d_desc);
-
-	grabber->context->CopyResource(grabber->dest_tex, source);
+	//
+	// res = grabber->duplication->AcquireNextFrame(0, &info, &resource);
+	//
+	// if (res != S_OK)
+	// 	return -1;
+	//
+	// if (!info.AccumulatedFrames) {
+	// 	ret = 1;
+	// 	goto out;
+	// }
+	//
+	// res = resource->QueryInterface(__uuidof(ID3D11Texture2D), (void**)&source);
+	// if (res != S_OK) {
+	// 	ret = -2;
+	// 	goto out;
+	// }
+	//
+	// D3D11_TEXTURE2D_DESC s_desc;
+	// source->GetDesc(&s_desc);
+	//
+	// D3D11_TEXTURE2D_DESC d_desc;
+	// grabber->dest_tex->GetDesc(&d_desc);
+	//
+	// grabber->context->CopyResource(grabber->dest_tex, source);
+	
 	//grabber->context->Flush();
 	//grabber->context->CopyResource(dest, source);
 
 out:
-	if (source)
-		source->Release();
-	resource->Release();
-	grabber->duplication->ReleaseFrame();
+	// if (source)
+	// 	source->Release();
+	// resource->Release();
+	// grabber->duplication->ReleaseFrame();
 
 	return ret;
 }
