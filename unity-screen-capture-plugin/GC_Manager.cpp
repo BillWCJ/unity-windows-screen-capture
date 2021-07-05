@@ -82,11 +82,15 @@ int grabber_create_dest_texture(struct DX11ScreenGrabber* grabber)
 	if (res != S_OK) {
 		return -1;
 	}
-	while (grabber_get_next_frame(grabber, NULL))
-		;
+	// while (grabber_get_next_frame(grabber, NULL))
+	// {
+	// 	std::cout << "Waiting for valid frame" << std::endl;
+	// }
 	grabber->context->Flush();
 	res = grabber->device->CreateShaderResourceView(grabber->dest_tex, NULL, &grabber->dest_view);
 	if (res != S_OK) {
+
+		std::cout << "Failed to create shader resource view" << std::endl;
 		return -2;
 	}
 
@@ -212,6 +216,43 @@ extern "C" UNITY_INTERFACE_EXPORT int grabber_get_next_frame(struct DX11ScreenGr
 	
 	//grabber->context->Flush();
 	//grabber->context->CopyResource(dest, source);
+	
+	winrt::Windows::Graphics::Capture::Direct3D11CaptureFrame frame = grabber->frame_pool.TryGetNextFrame();
+
+	if (!frame) {
+		return -1;
+	}
+
+	try {
+		winrt::com_ptr<ID3D11Texture2D> surfaceTexture = GetDXGIInterfaceFromObject<ID3D11Texture2D>(frame.Surface());
+		D3D11_TEXTURE2D_DESC lastFrameDesc = GetTextureDesription1(grabber->dest_tex);
+		D3D11_TEXTURE2D_DESC newFrameDesc = GetTextureDesription(surfaceTexture);
+		const winrt::Windows::Graphics::SizeInt32 contentSize = frame.ContentSize();
+
+		if ((contentSize.Width != grabber->last_size.Width) || (contentSize.Height != grabber->last_size.Height)) {
+			grabber->last_size = contentSize;
+			std::cout << "update to last size Frame Pool" << ret << std::endl;
+		}
+		
+		if ((newFrameDesc.Width != lastFrameDesc.Width) || (newFrameDesc.Height != lastFrameDesc.Height)) {
+			std::cout << "update to last size Frame Pool2" << ret << std::endl;
+			grabber->last_size = contentSize;
+			
+			int ret = grabber_create_dest_texture(grabber);
+			std::cout << "Return vault of create des tex" << ret << std::endl;
+
+			std::cout << "Recreating Frame Pool" << ret << std::endl;
+			grabber->frame_pool.Recreate(GetDirectD3DDevice(grabber->d3dDevice), winrt::DirectXPixelFormat::B8G8R8A8UIntNormalized, 2, grabber->last_size);
+		}
+		grabber->context->CopyResource(grabber->dest_tex, surfaceTexture.get());
+
+	}
+	catch (winrt::hresult_error const& ex)
+	{
+		winrt::hresult hr = ex.code(); // HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND).
+		winrt::hstring message = ex.message(); // The system cannot find the file specified.
+		std::cout << "Got error while getting frame:" << ex.message().c_str() << std::endl;
+	}
 
 out:
 	// if (source)

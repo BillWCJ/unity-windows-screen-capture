@@ -8,6 +8,12 @@ inline winrt::Windows::Graphics::DirectX::Direct3D11::IDirect3DDevice GetDirectD
     return directD3DDevice;
 }
 
+inline D3D11_TEXTURE2D_DESC GetTextureDesription1(ID3D11Texture2D* tex) {
+    D3D11_TEXTURE2D_DESC desc = {};
+    tex->GetDesc(&desc);
+    return desc;
+};
+
 inline D3D11_TEXTURE2D_DESC GetTextureDesription(winrt::com_ptr<ID3D11Texture2D> tex) {
     D3D11_TEXTURE2D_DESC desc = {};
     tex->GetDesc(&desc);
