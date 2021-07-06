@@ -42,7 +42,7 @@ public class Video : MonoBehaviour
         rend.enabled = true;
 
         var materials = rend.materials;
-        texture = new Texture2D(1, 1, TextureFormat.RGBA32, false, false);
+        texture = new Texture2D(1, 1, TextureFormat.BGRA32, false, false);
         /*
         foreach (var mat in materials) {
             Debug.Log ("Material: " + mat.name);
@@ -79,13 +79,13 @@ public class Video : MonoBehaviour
         float factor = 1000;
         Width = grabber.width;
         Height = grabber.height;
-        transform.localScale = new Vector3(Width/factor, 1, Height/factor);
+        transform.localScale = new Vector3(-Width/factor, 1, Height/factor);
 
 		Debug.Log("Got frame result: " + grabber.GetNextFrame(texture.GetNativeTexturePtr()));
 		//Texture2D.CreateExternalTexture (grabber.width, grabber.height, TextureFormat.BGRA32, 0, true, nativeTex);
 		//texture.UpdateExternalTexture(grabber.texture);
 		//texture.Apply ();
-    }
+	}
 
 	class Grabber : IDisposable
 	{
