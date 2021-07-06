@@ -226,6 +226,7 @@ ENDLOCAL
     <ClInclude Include="GraphicsHelper.h" />
     <ClInclude Include="MonitorList.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="WindowList.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
@@ -238,6 +239,7 @@ ENDLOCAL
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="PluginManager_D3D11.cpp" />
+    <ClCompile Include="WindowList.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

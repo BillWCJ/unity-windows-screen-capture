@@ -10,6 +10,10 @@
 #include <Unknwn.h>
 #include <inspectable.h>
 
+#include <dwmapi.h>
+#include <wil/cppwinrt.h>
+#include <wil/resource.h>
+
 // WinRT
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.Foundation.Collections.h>

@@ -12,6 +12,8 @@
 #include <windows.graphics.capture.interop.h>
 #include <windows.graphics.capture.h>
 
+#include "WindowList.h"
+
 
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3d11.lib")
@@ -38,6 +40,7 @@ struct DX11ScreenGrabber {
 	winrt::com_ptr <ID3D11Device> d3dDevice{ nullptr };
 	ID3D11DeviceContext* context;
 	MonitorList* monitor_list;
+	WindowList* window_list;
 
 	winrt::Windows::Graphics::Capture::Direct3D11CaptureFramePool frame_pool{ nullptr };
 	winrt::Windows::Graphics::Capture::GraphicsCaptureSession session{ nullptr };
@@ -113,7 +116,8 @@ extern "C" UNITY_INTERFACE_EXPORT void grabber_destroy(struct DX11ScreenGrabber*
 		grabber->d3dDevice.detach();
 	if (grabber->context)
 		grabber->context->Release();
-	// TODO: monitor
+	
+	// TODO: monitor and windows list
 
 	std::cout << "Destroying tex" << std::endl;
 	if (grabber->dest_tex)
@@ -172,26 +176,34 @@ extern "C" UNITY_INTERFACE_EXPORT struct DX11ScreenGrabber* grabber_create(ID3D1
 
 	std::cout << "Getting device" << std::endl;
 	tex->GetDevice(&grabber->device);
+	tex->GetDevice(grabber->d3dDevice.put());
 	grabber->device->GetImmediateContext(&grabber->context);
-
+	
 	std::cout << "Allocating monitor list" << std::endl;
 	grabber->monitor_list = new MonitorList(false);
-	
-	tex->GetDevice(grabber->d3dDevice.put());
 
-	const std::vector<MonitorInfo> monitor_infos = grabber->monitor_list->GetCurrentMonitors();
-	const HMONITOR hmon = monitor_infos[0].MonitorHandle;
+	std::cout << "Allocating windows list" << std::endl;
+	grabber->window_list = new WindowList();
 
-	std::cout << "Creating Item for " << monitor_infos[0].DisplayName.c_str() << std::endl;
-	grabber->item = CreateCaptureItemForMonitor(hmon);
+	// get test item
+	//const std::vector<MonitorInfo> monitor_infos = grabber->monitor_list->GetCurrentMonitors();
+	//const HMONITOR hmon = monitor_infos[0].MonitorHandle;
+
+	//std::cout << "Creating Item for monitor " << monitor_infos[0].DisplayName.c_str() << std::endl;
+	//grabber->item = CreateCaptureItemForMonitor(hmon);
+
+	const std::vector<WindowInfo> window_infos = grabber->window_list->GetCurrentWindows();
+	const HWND hwnd = window_infos[0].WindowHandle;
+
+	std::cout << "Creating Item for window " << window_infos[0].Title.c_str() << std::endl;
+	grabber->item = CreateCaptureItemForWindow(hwnd);
+
 
 	std::cout << "Creating frame pool" << std::endl;
 	grabber->frame_pool = winrt::Direct3D11CaptureFramePool::Create(GetDirectD3DDevice(grabber->d3dDevice), winrt::DirectXPixelFormat::B8G8R8A8UIntNormalized, 2, grabber->item.Size());
 	grabber->session = grabber->frame_pool.CreateCaptureSession(grabber->item);
 	std::cout << "got session: " << &grabber->session << std::endl;
 	grabber->last_size = grabber->item.Size();
-
-
 	
 	/*
 	res = D3D11CreateDevice(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, D3D11_CREATE_DEVICE_BGRA_SUPPORT, NULL, 0, D3D11_SDK_VERSION, &grabber->device, NULL, &grabber->context);
