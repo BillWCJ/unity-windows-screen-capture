@@ -41,6 +41,7 @@ struct DX11ScreenGrabber {
 
 	winrt::Windows::Graphics::Capture::Direct3D11CaptureFramePool frame_pool{ nullptr };
 	winrt::Windows::Graphics::Capture::GraphicsCaptureSession session{ nullptr };
+	winrt::GraphicsCaptureItem item{ nullptr };
 	winrt::Windows::Graphics::SizeInt32 last_size;
 	
 	ID3D11Texture2D* dest_tex;
@@ -98,20 +99,48 @@ int grabber_create_dest_texture(struct DX11ScreenGrabber* grabber)
 }
 
 extern "C" UNITY_INTERFACE_EXPORT void grabber_destroy(struct DX11ScreenGrabber* grabber)
-{
+{	
 	if (!grabber)
+	{
+		std::cout << "Nothing to destroy" << std::endl;
 		return;
+	}
 
+	std::cout << "Destroying dx resources" << std::endl;
 	if (grabber->device)
 		grabber->device->Release();
+	if (grabber->d3dDevice)
+		grabber->d3dDevice.detach();
 	if (grabber->context)
 		grabber->context->Release();
-	grabber->d3dDevice.detach();
+	// TODO: monitor
 
+	std::cout << "Destroying tex" << std::endl;
 	if (grabber->dest_tex)
 		grabber->dest_tex->Release();
 	if (grabber->dest_view)
 		grabber->dest_view->Release();
+	
+	std::cout << "Destroying graphics capture session" << std::endl;
+	std::cout << "session: " << &grabber->session << std::endl;
+	if (grabber->session)
+	{
+		std::cout << "Destroying graphics capture session2" << std::endl;
+		grabber->session.Close();
+		std::cout << "Destroying graphics capture session3" << std::endl;
+		grabber->session = nullptr;
+	}
+
+	std::cout << "Destroying graphics capture framepool" << std::endl;
+	if (grabber->frame_pool)
+	{
+		grabber->frame_pool.Close();
+		grabber->frame_pool = nullptr;
+	}
+
+	grabber->item = nullptr;
+	// last size clean up?
+
 }
 
 inline auto CreateCaptureItemForWindow(HWND hwnd)
@@ -154,12 +183,13 @@ extern "C" UNITY_INTERFACE_EXPORT struct DX11ScreenGrabber* grabber_create(ID3D1
 	const HMONITOR hmon = monitor_infos[0].MonitorHandle;
 
 	std::cout << "Creating Item for " << monitor_infos[0].DisplayName.c_str() << std::endl;
-	const winrt::GraphicsCaptureItem item = CreateCaptureItemForMonitor(hmon);
+	grabber->item = CreateCaptureItemForMonitor(hmon);
 
 	std::cout << "Creating frame pool" << std::endl;
-	grabber->frame_pool = winrt::Direct3D11CaptureFramePool::Create(GetDirectD3DDevice(grabber->d3dDevice), winrt::DirectXPixelFormat::B8G8R8A8UIntNormalized, 2, item.Size());
-	grabber->session = grabber->frame_pool.CreateCaptureSession(item);
-	grabber->last_size = item.Size();
+	grabber->frame_pool = winrt::Direct3D11CaptureFramePool::Create(GetDirectD3DDevice(grabber->d3dDevice), winrt::DirectXPixelFormat::B8G8R8A8UIntNormalized, 2, grabber->item.Size());
+	grabber->session = grabber->frame_pool.CreateCaptureSession(grabber->item);
+	std::cout << "got session: " << &grabber->session << std::endl;
+	grabber->last_size = grabber->item.Size();
 
 
 	
@@ -224,6 +254,17 @@ extern "C" UNITY_INTERFACE_EXPORT int grabber_get_next_frame(struct DX11ScreenGr
 	
 	winrt::Windows::Graphics::Capture::Direct3D11CaptureFrame frame = grabber->frame_pool.TryGetNextFrame();
 
+	if (grabber->monitor_list)
+	{
+		const std::vector<MonitorInfo> monitor_infos = grabber->monitor_list->GetCurrentMonitors();
+		std::cout << "got monitors " << monitor_infos.size() << std::endl;
+		
+	}else
+	{
+		std::cout << "Monitor list is null" << std::endl;
+		
+	}
+	
 	if (!frame) {
 		return -1;
 	}
@@ -246,8 +287,11 @@ extern "C" UNITY_INTERFACE_EXPORT int grabber_get_next_frame(struct DX11ScreenGr
 			int ret = grabber_create_dest_texture(grabber);
 			std::cout << "Return vault of create des tex" << ret << std::endl;
 
-			std::cout << "Recreating Frame Pool" << ret << std::endl;
-			grabber->frame_pool.Recreate(GetDirectD3DDevice(grabber->d3dDevice), winrt::DirectXPixelFormat::B8G8R8A8UIntNormalized, 2, grabber->last_size);
+			std::cout << "Getting directD3D device" << std::endl;
+			winrt::IDirect3DDevice device = GetDirectD3DDevice(grabber->d3dDevice);
+			
+			std::cout << "Recreating Frame Pool" << std::endl;
+			grabber->frame_pool.Recreate(device, winrt::DirectXPixelFormat::B8G8R8A8UIntNormalized, 2, grabber->last_size);
 		}
 		grabber->context->CopyResource(grabber->dest_tex, surfaceTexture.get());
 
