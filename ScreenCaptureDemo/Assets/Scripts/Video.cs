@@ -10,6 +10,11 @@ public class Video : MonoBehaviour
 	private Renderer rend;
 	private Texture2D texture;
 
+    private GameObject sphere;
+    private Vector3 scaleChange, positionChange;
+
+    public int Width, Height;
+
 	// Use this for initialization
 	void Start()
 	{
@@ -70,12 +75,17 @@ public class Video : MonoBehaviour
 
 	// OnWillRenderObject is called once for each camera if the object is visible.
 	void OnWillRenderObject()
-	{
+    {
+        float factor = 1000;
+        Width = grabber.width;
+        Height = grabber.height;
+        transform.localScale = new Vector3(Width/factor, 1, Height/factor);
+
 		Debug.Log("Got frame result: " + grabber.GetNextFrame(texture.GetNativeTexturePtr()));
 		//Texture2D.CreateExternalTexture (grabber.width, grabber.height, TextureFormat.BGRA32, 0, true, nativeTex);
 		//texture.UpdateExternalTexture(grabber.texture);
 		//texture.Apply ();
-	}
+    }
 
 	class Grabber : IDisposable
 	{

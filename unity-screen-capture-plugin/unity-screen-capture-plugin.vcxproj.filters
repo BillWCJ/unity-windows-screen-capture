@@ -27,13 +27,16 @@
     <ClInclude Include="direct3d11.interop.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GC_Manager.h">
+    <ClInclude Include="CaptureManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GraphicsHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="WindowList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CaptureHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -44,13 +47,10 @@
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PluginManager_D3D11.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MonitorList.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GC_Manager.cpp">
+    <ClCompile Include="CaptureManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="WindowList.cpp">

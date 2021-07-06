@@ -1,7 +1,5 @@
 #include "pch.h"
-
-
-#include "GC_Manager.h"
+#include "CaptureManager.h"
 
 #include <iostream>
 
@@ -9,9 +7,8 @@
 #include "GraphicsHelper.h"
 #include "MonitorList.h"
 #include <winrt/Windows.Graphics.Capture.h>
-#include <windows.graphics.capture.interop.h>
-#include <windows.graphics.capture.h>
 
+#include "CaptureHelper.h"
 #include "WindowList.h"
 
 
@@ -147,22 +144,6 @@ extern "C" UNITY_INTERFACE_EXPORT void grabber_destroy(struct DX11ScreenGrabber*
 
 }
 
-inline auto CreateCaptureItemForWindow(HWND hwnd)
-{
-	auto interop_factory = winrt::get_activation_factory<winrt::Windows::Graphics::Capture::GraphicsCaptureItem, IGraphicsCaptureItemInterop>();
-	winrt::Windows::Graphics::Capture::GraphicsCaptureItem item = { nullptr };
-	winrt::check_hresult(interop_factory->CreateForWindow(hwnd, winrt::guid_of<ABI::Windows::Graphics::Capture::IGraphicsCaptureItem>(), winrt::put_abi(item)));
-	return item;
-}
-
-inline auto CreateCaptureItemForMonitor(HMONITOR hmon)
-{
-	auto interop_factory = winrt::get_activation_factory<winrt::Windows::Graphics::Capture::GraphicsCaptureItem, IGraphicsCaptureItemInterop>();
-	winrt::Windows::Graphics::Capture::GraphicsCaptureItem item = { nullptr };
-	winrt::check_hresult(interop_factory->CreateForMonitor(hmon, winrt::guid_of<ABI::Windows::Graphics::Capture::IGraphicsCaptureItem>(), winrt::put_abi(item)));
-	return item;
-}
-
 extern "C" UNITY_INTERFACE_EXPORT struct DX11ScreenGrabber* grabber_create(ID3D11Resource * tex)
 {
 	struct DX11ScreenGrabber* grabber;
@@ -182,21 +163,21 @@ extern "C" UNITY_INTERFACE_EXPORT struct DX11ScreenGrabber* grabber_create(ID3D1
 	std::cout << "Allocating monitor list" << std::endl;
 	grabber->monitor_list = new MonitorList(false);
 
-	std::cout << "Allocating windows list" << std::endl;
-	grabber->window_list = new WindowList();
+	//std::cout << "Allocating windows list" << std::endl;
+	//grabber->window_list = new WindowList();
 
 	// get test item
-	//const std::vector<MonitorInfo> monitor_infos = grabber->monitor_list->GetCurrentMonitors();
-	//const HMONITOR hmon = monitor_infos[0].MonitorHandle;
+	const std::vector<MonitorInfo> monitor_infos = grabber->monitor_list->GetCurrentMonitors();
+	const HMONITOR hmon = monitor_infos[0].MonitorHandle;
 
-	//std::cout << "Creating Item for monitor " << monitor_infos[0].DisplayName.c_str() << std::endl;
-	//grabber->item = CreateCaptureItemForMonitor(hmon);
+	std::cout << "Creating Item for monitor " << monitor_infos[0].DisplayName.c_str() << std::endl;
+	grabber->item = CreateCaptureItemForMonitor(hmon);
 
-	const std::vector<WindowInfo> window_infos = grabber->window_list->GetCurrentWindows();
-	const HWND hwnd = window_infos[0].WindowHandle;
-
-	std::cout << "Creating Item for window " << window_infos[0].Title.c_str() << std::endl;
-	grabber->item = CreateCaptureItemForWindow(hwnd);
+	// const std::vector<WindowInfo> window_infos = grabber->window_list->GetCurrentWindows();
+	// const HWND hwnd = window_infos[0].WindowHandle;
+	//
+	// std::cout << "Creating Item for window " << window_infos[0].Title.c_str() << std::endl;
+	// grabber->item = CreateCaptureItemForWindow(hwnd);
 
 
 	std::cout << "Creating frame pool" << std::endl;
@@ -212,6 +193,8 @@ extern "C" UNITY_INTERFACE_EXPORT struct DX11ScreenGrabber* grabber_create(ID3D1
 		goto err;
 	}
 	*/
+
+
 	
 	std::cout << "Creating dest test" << std::endl;
 	if (grabber_create_dest_texture(grabber)) {
@@ -283,8 +266,8 @@ extern "C" UNITY_INTERFACE_EXPORT int grabber_get_next_frame(struct DX11ScreenGr
 
 	try {
 		winrt::com_ptr<ID3D11Texture2D> surfaceTexture = GetDXGIInterfaceFromObject<ID3D11Texture2D>(frame.Surface());
-		D3D11_TEXTURE2D_DESC lastFrameDesc = GetTextureDesription1(grabber->dest_tex);
-		D3D11_TEXTURE2D_DESC newFrameDesc = GetTextureDesription(surfaceTexture);
+		D3D11_TEXTURE2D_DESC lastFrameDesc = GetTextureDescription1(grabber->dest_tex);
+		D3D11_TEXTURE2D_DESC newFrameDesc = GetTextureDescription(surfaceTexture);
 		const winrt::Windows::Graphics::SizeInt32 contentSize = frame.ContentSize();
 
 		if ((contentSize.Width != grabber->last_size.Width) || (contentSize.Height != grabber->last_size.Height)) {
